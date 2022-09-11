@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 
+
+#used so that the client does not need to have a user in order to use the API
 class ServerUser(AnonymousUser):
 
     @property

@@ -37,7 +37,7 @@ def validate_post_request(data:dict):
     keys = ('CHROM', 'POS', 'ALT', 'REF', 'ID')
     flag = False
     if type(data) is dict and all(key in data for key in keys):
-        flag =  all([
+        flag = all([
                 chrom_test(data['CHROM']),
                 pos_test(data['POS']),
                 id_test(data['ID']),

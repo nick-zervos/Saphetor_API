@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from pathlib import Path
 import re
+import sys
 
 #get dynamic file path at the root of the project named file.vcf
 file_path = os.path.join(Path(__file__).resolve().parent.parent.parent, 'file.vcf')
@@ -17,9 +18,15 @@ def read_vcf(path):
             lines = [l for l in f if not l.startswith('##')]
             df = pd.read_csv(
             io.StringIO(''.join(lines)),
-            dtype={'#CHROM': str, 'POS': int, 'ID': str, 'REF': str, 'ALT': str,}, sep='\t').rename(columns={'#CHROM': 'CHROM'})
-    except FileNotFoundError:
-        raise FileNotFoundError('File does not exist or has wrong name. Make sure it is "file.vcf" ')
+            dtype={'#CHROM': str, 'POS': str, 'ID': str, 'REF': str, 'ALT': str,}, sep='\t').rename(columns={'#CHROM': 'CHROM'})
+    except OSError as e:
+        print(f"Unable to open {path}: {e}", file=sys.stderr)
+        return
+    except UnicodeDecodeError as e:
+        print(f"Unable to open {path}, invalid file encoding: {e}", file=sys.stderr)
+    except pd.errors.EmptyDataError as e:
+        print(f"Unable to parse data, file at {path} is empty: {e}",file=sys.stderr)
+        return pd.DataFrame()
     else:
         df = df[['CHROM', 'POS', 'ID', 'REF', 'ALT']].copy()
         df = df.replace('.', float('NaN')).copy()
@@ -27,17 +34,4 @@ def read_vcf(path):
         df.dropna(subset = ['ID'], inplace = True)
         df = df.reset_index(drop=True)
         return df
-
-# def get_header(path):
-#     with open(path, 'r') as f:
-#         header = [l for l in f if l.startswith('##')]
-#         print(header)
-#         return header
-
-
-# header = get_header(file_path)
-
-# my_file = read_vcf(file_path)
-# print(my_file)
-
 
