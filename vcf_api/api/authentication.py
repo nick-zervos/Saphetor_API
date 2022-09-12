@@ -1,5 +1,3 @@
-# my_app/authentication.py
-# from django.contrib.auth.models import User
 from .serveruser import ServerUser
 from rest_framework import authentication
 from rest_framework import exceptions
@@ -7,6 +5,7 @@ from rest_framework.authentication import get_authorization_header
 from vcf_api import settings
 
 
+#Create a custom authentication class to use as a decorator for our views.
 class PredefinedSecret(authentication.BaseAuthentication):
     keyword = 'Token'
 
