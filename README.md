@@ -2,10 +2,9 @@
 
 **Instructions**  
 
-Clone or download the repository and activate the virtual environment by running "source env/bin/activate".
+Clone or download the repository and activate the virtual environment by running "source env/bin/activate" in the terminal.
 
 Then install the requirements by running ```"pip install -r requirements.txt"```.
-
 
 Finally cd into the vcf_api folder and run ```"python manage.py migrate"```, then ```"python manage.py test"``` to run the tests, and ```"python manage.py runserver"``` to start the development server.
 
