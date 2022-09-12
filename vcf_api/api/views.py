@@ -88,28 +88,35 @@ def putData(request):
             
             #locate the rows in our original file
             rows_to_edit = vcf_file.loc[vcf_file['ID'] == row_id].copy()
-            #replace the values of our file with the ones sent by the client
-            no_of_rows = rows_to_edit.shape[0]
-            
-            #if the number of rows we need to edit is more that 1, then we need to reshape our second dataframe that contains our client data so that they both have an equal ammount of rows
-            if no_of_rows > 1:
-                df = pd.concat([df]*no_of_rows)
-            rows_to_edit[['CHROM', 'POS', 'ID', 'REF', 'ALT']] = df[['CHROM', 'POS', 'ID', 'REF', 'ALT']].values
-            # #get the indexes of aformentioned rows
-            index = vcf_file.index[vcf_file['ID'] == row_id]
 
-            # #get file header
-            header = get_vcf_header(file_path)
-            #drop old rows and insert new ones with the correct data at the correct index
-            vcf_file.drop(axis=0, index=index, inplace=True)
-            vcf_file = pd.concat([vcf_file, rows_to_edit])
-            vcf_file.sort_index(inplace=True)
-            vcf_file.rename(columns={'CHROM': '#CHROM'})
+            #if there are no rows to modify, return a 404 status code
+            if rows_to_edit.empty:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            else:
+                #replace the values of our file with the ones sent by the client
 
-            # #save to the vcf file. First add the header, then append the rest of the rows. (quoting=csv.QUOTE_NONE is added so that pd.to_csv doesn't add any unnecessary double quotes)
-            header.to_csv(file_path, sep="\t", index=False, header=False, doublequote=False, quoting=csv.QUOTE_NONE)
-            vcf_file.to_csv(file_path, sep="\t", mode='a', index=False, header=True, quoting=csv.QUOTE_NONE)
-            return Response(data="Row(s) successfully edited", content_type="application/json", status=status.HTTP_200_OK)
+                #get the number of rows sent from the client
+                no_of_rows = rows_to_edit.shape[0]
+                
+                #if the number of rows we need to edit is more that 1, then we need to reshape our second dataframe that contains our client data so that they both have an equal ammount of rows
+                if no_of_rows > 1:
+                    df = pd.concat([df]*no_of_rows)
+                rows_to_edit[['CHROM', 'POS', 'ID', 'REF', 'ALT']] = df[['CHROM', 'POS', 'ID', 'REF', 'ALT']].values
+                # #get the indexes of aformentioned rows
+                index = vcf_file.index[vcf_file['ID'] == row_id]
+
+                # #get file header
+                header = get_vcf_header(file_path)
+                #drop old rows and insert new ones with the correct data at the correct index
+                vcf_file.drop(axis=0, index=index, inplace=True)
+                vcf_file = pd.concat([vcf_file, rows_to_edit])
+                vcf_file.sort_index(inplace=True)
+                vcf_file.rename(columns={'CHROM': '#CHROM'})
+
+                # #save to the vcf file. First add the header, then append the rest of the rows. (quoting=csv.QUOTE_NONE is added so that pd.to_csv doesn't add any unnecessary double quotes)
+                header.to_csv(file_path, sep="\t", index=False, header=False, doublequote=False, quoting=csv.QUOTE_NONE)
+                vcf_file.to_csv(file_path, sep="\t", mode='a', index=False, header=True, quoting=csv.QUOTE_NONE)
+                return Response(data="Row(s) successfully edited", content_type="application/json", status=status.HTTP_200_OK)
         else: 
             return Response(data="Invalid content type", content_type="application/json", status=status.HTTP_403_FORBIDDEN)
     else:
