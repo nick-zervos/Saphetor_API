@@ -57,6 +57,7 @@ def postData(request, format=None):
     #Logic for POST request
     #validate the data that has been sent. Return 403 for invalid data
     if validate_post_request(request.data):
+        #convert data to DataFrame, then reorder the columns to match our file and save to file by appending a new row
         df = pd.DataFrame(request.data, index=[0])
         cols = ['CHROM', 'POS', 'ID', 'REF', 'ALT']
         df = df[cols]
@@ -74,9 +75,11 @@ def postData(request, format=None):
 def putData(request):
     #read the file and parse to dataframe
     file_path = os.path.join(Path(__file__).resolve().parent.parent.parent, 'file.vcf')
+    
+    #Here we use the function to get all the columns of the file (not only 'CHROM', 'POS', 'ID', 'REF', 'ALT') so that after manipulation, the rest of the data in the row remains intact
     vcf_file = read_original_vcf(file_path)
     #Logic for PUT request
-    #validate the data that has been sent. Return 403 for invalid data
+    #validate the data that has been sent. Return 403 for invalid data 
     if 'id' in request.query_params:
         #validate existance of id parameter
         if validate_post_request(request.data):
@@ -131,6 +134,8 @@ def putData(request):
 def deleteData(request):
        #read the file and parse to dataframe
     file_path = os.path.join(Path(__file__).resolve().parent.parent.parent, 'file.vcf')
+
+    #Same as above, we use the function to get all the columns of the file (not only 'CHROM', 'POS', 'ID', 'REF', 'ALT') so that after manipulation, the rest of the data in the row remains intact
     vcf_file = read_original_vcf(file_path)
     
     #Logic for DELETE request
@@ -150,7 +155,7 @@ def deleteData(request):
             vcf_file.rename(columns={'CHROM': '#CHROM'})
             header = get_vcf_header(file_path)
 
-            #save our files, first the header then append the columns
+            #save our file, first we save the header then append the columns
             header.to_csv(file_path, sep="\t", index=False, header=False, doublequote=False, quoting=csv.QUOTE_NONE)
             vcf_file.to_csv(file_path, sep="\t", mode='a', index=False, header=True, quoting=csv.QUOTE_NONE)
             return Response(data="Row(s) successfully Deleted", content_type="application/json", status=status.HTTP_204_NO_CONTENT)
